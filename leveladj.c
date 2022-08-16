@@ -61,38 +61,39 @@ int check_window_size()
 	return 0;
 }
 
-// Generate a 3-sided box with a y-axis of 31 --> 0
-void print_box()
-{
-    mvprintw(0, 0, "%s", BOUND);
+WINDOW* print_box() {
+    WINDOW* win = newwin(Y_UPPER + 2, X_UPPER + 2, 0, 0);
+    box(win, 0, 0);
     for (int y = 31; y > -1; y--) {
-        // Print the axis with | separation, allowing for the top border
-        mvprintw(32 - y, 0, "%2d%s", y, "|");
+        mvwprintw(win, 32 - y, 0, "%d", y);
     }
-    mvprintw(33, 0, "%s", BOUND);
-
-    return;
+    return win;
 }
 
 void print_graph(int level)
 {
-	for (int i = 0; i < 32; i++) {
-		int y_pos = level;
+	WINDOW* win = printBox();
+    int x_lower = X_LOWER, x_upper = X_UPPER;
+    int y_lower = Y_LOWER, y_upper = Y_UPPER;
+	for (int i = 3; i <= X_UPPER; i++) {
+		int y_pos = rand() % (y_upper - y_lower + 1) + y_lower;
+		//int x_pos = rand() % (x_upper - x_lower + 1) + x_lower;
+		//int y_pos = level;
 		int x_pos = i;
 		// Store where we've printed so far
 		coords_arr[i].y = y_pos;
 		coords_arr[i].x = x_pos;
-		mvprintw(y_pos, x_pos, "%s", "*");
-		refresh();
+		mvwprintw(win, y_pos, x_pos, "%s", "*");
+		wrefresh(win);
 		usleep(100000);
-		if (i == 31) {
+		if (i == X_UPPER) {
 			erase();
-			printBox();
+			WINDOW* win = print_box();
 			for (int j = 0; j < sizeof coords_arr / sizeof *coords_arr; j++) {
 				// After a period of n, shift everything to the left by one
 				// and erase > n so that the screen isn't cluttered
-				mvprintw(coords_arr[j].y, coords_arr[j].x - 1, "%s", "*");
-				refresh();
+				mvwprintw(win, coords_arr[j].y, coords_arr[j].x - 1, "%s", "*");
+                wrefresh(win);
 			}
 			// Clear the array
 			memset(coords_arr, 0, sizeof coords_arr);
@@ -167,12 +168,12 @@ int main(int argc, char *argv[])
 	}
 	
 	if (graphics) {
-		if (checkWindowSize()) {
+		if (check_window_size()) {
         	exit(1);
 		}
 		int x_lower = X_LOWER, x_upper = X_UPPER;
 		int y_lower = Y_LOWER, y_upper = Y_UPPER;
-		printBox();
+		print_box();
 
 	}
 	
